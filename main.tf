@@ -14,10 +14,12 @@ terraform {
   }
 }
 variable "AWS_ACCESS_KEY_ID" {
-  type = string
+  type    = string
+  default = "value"
 }
 variable "AWS_SECRET_ACCESS_KEY" {
-  type = string
+  type    = string
+  default = "value"
 }
 
 # Configure the AWS Provider
