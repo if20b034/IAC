@@ -115,7 +115,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_network_interface" "ni" {
   subnet_id       = aws_subnet.su.id
   private_ips     = ["10.0.1.10"]
-  security_groups = [aws_instance.ec2-terraform3[count.index].id]
+  security_groups = [aws_instance.ec2-terraform3.id]
 
   # attachment {
   #   instance     = aws_instance.ec2-terraform2.id
