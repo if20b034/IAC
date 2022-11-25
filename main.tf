@@ -5,10 +5,18 @@ terraform {
       version = "~> 4.0"
     }
   }
+  cloud {
+    organization = "if20b034-terraform-workshop"
+
+    workspaces {
+      name = "Terraform-Workshop"
+    }
+  }
 }
 
 # Configure the AWS Provider
 # Use the AWS provider
+
 provider "aws" {
   region     = "us-east-1"
   access_key = var.AWS_ACCESS_KEY_ID
