@@ -29,7 +29,7 @@ provider "aws" {
   region     = "us-east-1"
   access_key = var.AWS_ACCESS_KEY_ID
   secret_key = var.AWS_SECRET_ACCESS_KEY
-  token      = "FwoGZXIvYXdzEEkaDGFzLlPohyRqd1gdhyLLARG6ZnH/SbaG0a0DNZVs7v0Bi26HTjJ0h9jSo1OYb5J7Hy7jalHPlcZfb48sYndfhtvKiBROwwJ+wL++SFcnZBDO2iqc1s7k+cGB2JaMA+w8QwOmQif5LS04yvC+dTQX1cfvLHJIhmGa8jBL/WIm3IjeTa83+AOgkvgD0ZZTpeQQaiGs0OBsvodznTe7EwyaMxadPPkHR8U1tIJn93WVh7dA+d4/aNOXFVF/27qMvHa12v4RRUZxVZ5SKYtKDOK6Z1ExPRhVxTiSB/jtKKzk3JsGMi0rBddcDrt/T48DVtY8bnykp/oJ7R59elYbNlQUy2TXq3WBOtXEH5lJfTMIlnc="
+  token      = var.AWS_SESSION_TOKEN
 }
 
 #	Create a VPC
