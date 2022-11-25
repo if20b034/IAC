@@ -1,0 +1,155 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+# Configure the AWS Provider
+# Use the AWS provider
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "ASIAVI2ANCW4LGGR635U"
+  secret_key = "BU76sltP/om/EFa/BlCwRwAjx4/z1+3ifPgrUNb2"
+  token      = "FwoGZXIvYXdzEEkaDGFzLlPohyRqd1gdhyLLARG6ZnH/SbaG0a0DNZVs7v0Bi26HTjJ0h9jSo1OYb5J7Hy7jalHPlcZfb48sYndfhtvKiBROwwJ+wL++SFcnZBDO2iqc1s7k+cGB2JaMA+w8QwOmQif5LS04yvC+dTQX1cfvLHJIhmGa8jBL/WIm3IjeTa83+AOgkvgD0ZZTpeQQaiGs0OBsvodznTe7EwyaMxadPPkHR8U1tIJn93WVh7dA+d4/aNOXFVF/27qMvHa12v4RRUZxVZ5SKYtKDOK6Z1ExPRhVxTiSB/jtKKzk3JsGMi0rBddcDrt/T48DVtY8bnykp/oJ7R59elYbNlQUy2TXq3WBOtXEH5lJfTMIlnc="
+}
+
+#	Create a VPC
+resource "aws_vpc" "Nuri" {
+  cidr_block       = "10.0.0.0/16"
+  instance_tenancy = "default"
+  tags = {
+    Name = "Terraform2"
+  }
+}
+
+# Create an internet gateway
+resource "aws_internet_gateway" "gw" {
+  vpc_id = aws_vpc.Nuri.id
+
+  tags = {
+    Name = "Terraform2"
+  }
+}
+
+# Create a custom route table
+resource "aws_route_table" "rt" {
+  vpc_id = aws_vpc.Nuri.id
+
+  route {
+    cidr_block = "0.0.0.0/0"
+    gateway_id = aws_internet_gateway.gw.id
+  }
+
+  tags = {
+    Name = "Terraform2"
+  }
+}
+
+# Create a subnet
+resource "aws_subnet" "su" {
+  vpc_id            = aws_vpc.Nuri.id
+  cidr_block        = "10.0.1.0/24"
+  availability_zone = "us-east-1a"
+
+  tags = {
+    Name = "Terraform2"
+  }
+}
+# Associate subnet with route table
+resource "aws_route_table_association" "rta" {
+  subnet_id      = aws_subnet.su.id
+  route_table_id = aws_route_table.rt.id
+}
+
+#Create a security group
+resource "aws_security_group" "terraform2" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_vpc.Nuri.id
+
+  #TCP port 80
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  #Allow everything
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "Terraform2"
+  }
+}
+
+#lockup for Ubuntu
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+# Create a network interface with an IP in the subnet
+resource "aws_network_interface" "ni" {
+  subnet_id       = aws_subnet.su.id
+  private_ips     = ["10.0.1.10"]
+  security_groups = [aws_security_group.terraform2.id]
+
+  # attachment {
+  #   instance     = aws_instance.ec2-terraform2.id
+  #   device_index = 1
+  # }
+}
+
+# Assign an elastic IP to the network interface
+resource "aws_eip" "oneipe" {
+  vpc                       = true
+  network_interface         = aws_network_interface.ni.id
+  associate_with_private_ip = "10.0.1.10"
+  depends_on                = [aws_internet_gateway.gw]
+}
+
+# Create an AWS EC2 instance
+resource "aws_instance" "ec2-terraform2" {
+  #Use Ubuntu
+  ami = data.aws_ami.ubuntu.id
+  #Use t2.micro
+  instance_type = "t2.micro"
+  #associate public ip address: true
+  # associate_public_ip_address = true
+  # vpc_security_group_ids = [aws_security_group.terraform2.id]
+  network_interface {
+    device_index         = 0
+    network_interface_id = aws_network_interface.ni.id
+  }
+  #user data: Start an Apache web server (code below)
+  user_data = file("userdata.sh")
+}
+
+#Output the public DNS address of the instance
+output "public_dns" {
+  description = "The public DNS name assigned to the instance. For EC2-VPC, this is only available if you've enabled DNS hostnames for your VPC"
+  value       = try(aws_eip.oneipe.public_ip, "")
+}

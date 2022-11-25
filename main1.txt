@@ -1,0 +1,101 @@
+terraform {
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+  }
+}
+
+# Configure the AWS Provider
+#Use the AWS provider
+provider "aws" {
+  region     = "us-east-1"
+  access_key = "ASIAVI2ANCW4FMFF5KBF"
+  secret_key = "BS5VzK++IvmdtHyFJnb1CQPfNjViGYpm1ylYYwWc"
+  token      = "FwoGZXIvYXdzEKH//////////wEaDAzB6nr8J6wnMAFefCLLAeLSDeKLUM4SKATzrIvB9UCL+v0gdgLUI0ptu3qaPuMDZp+DKPvKiYgQ8COotAhI+aiLJ0YlJPjwfp38NQWz+yYYBWbsEE2EwIrEFIj9XDcO5j8ZAUFGueUB7CZyb3UJmFlqVmRH2pW2acdGCqzY0031no7S+aYhHFqxS1rCB8uXqfhX4YXwKWAStFMCTbRwCLLC64E8u2FupsylEdAtynynkNtTghWQJ1zCOIYh6R8ArX62Oo76oOO8sxv5pAljUNImeJF297f+u7CZKPr9t5sGMi3A3+C+9x/jz1T8LDEV/CI8TbAWQRkyZGgeTNaqmGk5Kx+mNatK1LmBF8671XY="
+}
+
+#	Use the default VPC
+resource "aws_default_vpc" "default" {
+  tags = {
+    Name = "Default VPC"
+  }
+}
+
+#Create a security group
+resource "aws_security_group" "allow_tls" {
+  name        = "allow_tls"
+  description = "Allow TLS inbound traffic"
+  vpc_id      = aws_default_vpc.default.id
+
+  #TCP port 80
+  ingress {
+    description      = "TLS from VPC"
+    from_port        = 80
+    to_port          = 80
+    protocol         = "tcp"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  #Allow everything
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "allow_tls"
+  }
+}
+
+#lockup for Ubuntu
+data "aws_ami" "ubuntu" {
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = ["ubuntu/images/hvm-ssd/ubuntu-focal-20.04-amd64-server-*"]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = ["099720109477"] # Canonical
+}
+
+resource "aws_instance" "ec2-terraform" {
+  #Use Ubuntu
+  ami = data.aws_ami.ubuntu.id
+  #Use t2.micro
+  instance_type = "t2.micro"
+  #associate public ip address: true
+  associate_public_ip_address = true
+  vpc_security_group_ids      = [aws_security_group.allow_tls.id]
+  #user data: Start an Apache web server (code below)
+  user_data = file("userdata.sh")
+  # user_data = << EOF
+  #  #!/bin/bash
+  #  sudo apt-get update 
+  #  sudo apt-get install -y apache2 
+  #  sudo systemctl start apache2 
+  #  sudo systemctl enable apache2 
+  #  echo "<h1>Hello World</h1>" | sudo tee /var/www/html/index.html
+  #  EOF
+  #   tags = {
+  # 	Name = "Terraform"	
+  # 	Batch = "5AM"
+  #   }
+}
+
+#Output the public DNS address of the instance
+output "public_dns" {
+  description = "The public DNS name assigned to the instance. For EC2-VPC, this is only available if you've enabled DNS hostnames for your VPC"
+  value       = try(aws_instance.ec2-terraform.public_dns, "")
+}
