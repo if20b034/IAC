@@ -11,8 +11,8 @@ terraform {
 # Use the AWS provider
 provider "aws" {
   region     = "us-east-1"
-  access_key = "ASIAVI2ANCW4LGGR635U"
-  secret_key = "BU76sltP/om/EFa/BlCwRwAjx4/z1+3ifPgrUNb2"
+  access_key = var.AWS_ACCESS_KEY_ID
+  secret_key = var.AWS_SECRET_ACCESS_KEY
   token      = "FwoGZXIvYXdzEEkaDGFzLlPohyRqd1gdhyLLARG6ZnH/SbaG0a0DNZVs7v0Bi26HTjJ0h9jSo1OYb5J7Hy7jalHPlcZfb48sYndfhtvKiBROwwJ+wL++SFcnZBDO2iqc1s7k+cGB2JaMA+w8QwOmQif5LS04yvC+dTQX1cfvLHJIhmGa8jBL/WIm3IjeTa83+AOgkvgD0ZZTpeQQaiGs0OBsvodznTe7EwyaMxadPPkHR8U1tIJn93WVh7dA+d4/aNOXFVF/27qMvHa12v4RRUZxVZ5SKYtKDOK6Z1ExPRhVxTiSB/jtKKzk3JsGMi0rBddcDrt/T48DVtY8bnykp/oJ7R59elYbNlQUy2TXq3WBOtXEH5lJfTMIlnc="
 }
 
@@ -21,7 +21,7 @@ resource "aws_vpc" "Nuri" {
   cidr_block       = "10.0.0.0/16"
   instance_tenancy = "default"
   tags = {
-    Name = "Terraform2"
+    Name = "Terraform3"
   }
 }
 
@@ -30,7 +30,7 @@ resource "aws_internet_gateway" "gw" {
   vpc_id = aws_vpc.Nuri.id
 
   tags = {
-    Name = "Terraform2"
+    Name = "Terraform3"
   }
 }
 
@@ -44,7 +44,7 @@ resource "aws_route_table" "rt" {
   }
 
   tags = {
-    Name = "Terraform2"
+    Name = "Terraform3"
   }
 }
 
@@ -55,7 +55,7 @@ resource "aws_subnet" "su" {
   availability_zone = "us-east-1a"
 
   tags = {
-    Name = "Terraform2"
+    Name = "Terraform3"
   }
 }
 # Associate subnet with route table
@@ -65,7 +65,7 @@ resource "aws_route_table_association" "rta" {
 }
 
 #Create a security group
-resource "aws_security_group" "terraform2" {
+resource "aws_security_group" "terraform3" {
   name        = "allow_tls"
   description = "Allow TLS inbound traffic"
   vpc_id      = aws_vpc.Nuri.id
@@ -90,7 +90,7 @@ resource "aws_security_group" "terraform2" {
   }
 
   tags = {
-    Name = "Terraform2"
+    Name = "Terraform3"
   }
 }
 
@@ -115,7 +115,7 @@ data "aws_ami" "ubuntu" {
 resource "aws_network_interface" "ni" {
   subnet_id       = aws_subnet.su.id
   private_ips     = ["10.0.1.10"]
-  security_groups = [aws_security_group.terraform2.id]
+  security_groups = [aws_instance.ec2-terraform3[count.index].id]
 
   # attachment {
   #   instance     = aws_instance.ec2-terraform2.id
@@ -132,7 +132,7 @@ resource "aws_eip" "oneipe" {
 }
 
 # Create an AWS EC2 instance
-resource "aws_instance" "ec2-terraform2" {
+resource "aws_instance" "ec2-terraform3" {
   #Use Ubuntu
   ami = data.aws_ami.ubuntu.id
   #Use t2.micro
@@ -184,7 +184,7 @@ resource "aws_elb" "loadBa" {
   #   interval            = 30
   # }
 
-  instances                   = [aws_instance.ec2-terraform2.id]
+  instances                   = [aws_instance.ec2-terraform3[count.index].id]
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
@@ -200,3 +200,5 @@ output "public_dns" {
   description = "The public DNS name assigned to the instance. For EC2-VPC, this is only available if you've enabled DNS hostnames for your VPC"
   value       = try(aws_elb.loadBa.public_dns, "")
 }
+
+# Token = CX6idzbbOR7Xvw.atlasv1.pBZeK4Py8xBUvMFYnwQU13T4VUwZAbkBaaJCjpKXauuX4esQlZSRGkJltOHyih9nNAE
