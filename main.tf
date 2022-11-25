@@ -197,8 +197,8 @@ resource "aws_elb" "loadBa" {
   #   target              = "HTTP:8000/"
   #   interval            = 30
   # }
-
-  instances                   = [aws_instance.ec2-terraform3[count.index].id]
+  number_of_instances         = 4
+  instances                   = aws_instance.ec2-terraform3.*.id
   cross_zone_load_balancing   = true
   idle_timeout                = 400
   connection_draining         = true
