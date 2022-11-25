@@ -21,6 +21,10 @@ variable "AWS_SECRET_ACCESS_KEY" {
   type    = string
   default = "value"
 }
+variable "AWS_SESSION_TOKEN" {
+  type    = string
+  default = "value"
+}
 
 # Configure the AWS Provider
 # Use the AWS provider
