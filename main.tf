@@ -13,6 +13,12 @@ terraform {
     }
   }
 }
+variable "AWS_ACCESS_KEY_ID" {
+  default = {}
+}
+variable "AWS_SECRET_ACCESS_KEY" {
+  default = {}
+}
 
 # Configure the AWS Provider
 # Use the AWS provider
