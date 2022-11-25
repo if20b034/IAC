@@ -5,6 +5,7 @@ terraform {
       version = "~> 4.0"
     }
   }
+  # Add Cloud Providers
   cloud {
     organization = "if20b034-terraform-workshop"
 
@@ -13,24 +14,20 @@ terraform {
     }
   }
 }
+# Add Variables to access for authentication
 variable "AWS_ACCESS_KEY_ID" {
-  type    = string
-  default = "value"
 }
 variable "AWS_SECRET_ACCESS_KEY" {
-  type    = string
-  default = "value"
 }
 variable "AWS_SESSION_TOKEN" {
-  type    = string
-  default = "value"
 }
 
 # Configure the AWS Provider
 # Use the AWS provider
 
 provider "aws" {
-  region     = "us-east-1"
+  region = "us-east-1"
+  # replaced with variables from cloud
   access_key = var.AWS_ACCESS_KEY_ID
   secret_key = var.AWS_SECRET_ACCESS_KEY
   token      = var.AWS_SESSION_TOKEN
@@ -171,6 +168,7 @@ resource "aws_instance" "ec2-terraform3" {
   user_data = file("userdata.sh")
 }
 
+# Create a load balancer
 resource "aws_elb" "loadBa" {
   name               = "loadBa-terraform-elb"
   availability_zones = ["us-east-1a"]
@@ -203,6 +201,8 @@ resource "aws_elb" "loadBa" {
   #   target              = "HTTP:8000/"
   #   interval            = 30
   # }
+
+  # The load balancer should route to the created instances
   instances                   = aws_instance.ec2-terraform3.*.id
   cross_zone_load_balancing   = true
   idle_timeout                = 400
