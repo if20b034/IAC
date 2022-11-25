@@ -211,7 +211,7 @@ resource "aws_elb" "loadBa" {
 #Output the public DNS address of the instance
 output "public_dns" {
   description = "The public DNS name assigned to the instance. For EC2-VPC, this is only available if you've enabled DNS hostnames for your VPC"
-  value       = try(aws_elb.loadBa.public_dns, "")
+  value       = try(aws_elb.loadBa.dns_name, "")
 }
 
 # Token = CX6idzbbOR7Xvw.atlasv1.pBZeK4Py8xBUvMFYnwQU13T4VUwZAbkBaaJCjpKXauuX4esQlZSRGkJltOHyih9nNAE
