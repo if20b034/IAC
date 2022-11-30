@@ -134,25 +134,25 @@ data "aws_ami" "ubuntu" {
   owners = ["099720109477"] # Canonical
 }
 
-# Create a network interface with an IP in the subnet
-resource "aws_network_interface" "ni" {
-  subnet_id       = aws_subnet.su.id
-  private_ips     = ["10.0.1.10"]
-  security_groups = [aws_security_group.terraform3.id]
+# # Create a network interface with an IP in the subnet
+# resource "aws_network_interface" "ni" {
+#   subnet_id       = aws_subnet.su.id
+#   private_ips     = ["10.0.1.10"]
+#   security_groups = [aws_security_group.terraform3.id]
 
-  # attachment {
-  #   instance     = aws_instance.ec2-terraform2.id
-  #   device_index = 1
-  # }
-}
+#   # attachment {
+#   #   instance     = aws_instance.ec2-terraform2.id
+#   #   device_index = 1
+#   # }
+# }
 
-# Assign an elastic IP to the network interface
-resource "aws_eip" "oneipe" {
-  vpc                       = true
-  network_interface         = aws_network_interface.ni.id
-  associate_with_private_ip = "10.0.1.10"
-  depends_on                = [aws_internet_gateway.gw]
-}
+# # Assign an elastic IP to the network interface
+# resource "aws_eip" "oneipe" {
+#   vpc                       = true
+#   network_interface         = aws_network_interface.ni.id
+#   associate_with_private_ip = "10.0.1.10"
+#   depends_on                = [aws_internet_gateway.gw]
+# }
 
 # Create an AWS EC2 instance
 resource "aws_instance" "ec2-terraform3" {
@@ -160,16 +160,18 @@ resource "aws_instance" "ec2-terraform3" {
   ami = data.aws_ami.ubuntu.id
   #Use t2.micro
   instance_type = "t2.micro"
-  #associate public ip address: true
-  # associate_public_ip_address = true
+  #  associate public ip address: true
+  associate_public_ip_address = true
   # vpc_security_group_ids = [aws_security_group.terraform2.id]
 
   # Create more than one instance
   count = 4
-  network_interface {
-    device_index         = 0
-    network_interface_id = aws_network_interface.ni.id
-  }
+  # network_interface {
+  #   device_index         = 0
+  #   network_interface_id = aws_network_interface.ni.id
+  # }
+
+
   #user data: Start an Apache web server (code below)
   user_data = file("userdata.sh")
 }
