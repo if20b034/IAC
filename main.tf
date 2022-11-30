@@ -16,10 +16,16 @@ terraform {
 }
 # Add Variables to access for authentication
 variable "AWS_ACCESS_KEY_ID" {
+  type    = string
+  default = ""
 }
 variable "AWS_SECRET_ACCESS_KEY" {
+  type    = string
+  default = ""
 }
 variable "AWS_SESSION_TOKEN" {
+  type    = string
+  default = ""
 }
 
 # Configure the AWS Provider
