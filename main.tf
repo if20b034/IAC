@@ -181,11 +181,11 @@ resource "aws_elb" "loadBa" {
   name               = "loadBa-terraform-elb"
   availability_zones = ["us-east-1a"]
 
-  access_logs {
-    bucket        = "load"
-    bucket_prefix = "ba"
-    interval      = 60
-  }
+  # access_logs {
+  #   bucket        = "load"
+  #   bucket_prefix = "ba"
+  #   interval      = 60
+  # }
 
   listener {
     instance_port     = 8000
